@@ -189,6 +189,75 @@ class Post extends GlobalMethods{
         return $this->sendPayload(null, "success", "File uploaded successfully.", 200);
     }
     
+
+    public function backupFile($data){
+        $sql = "INSERT INTO backup SELECT * FROM files WHERE FileID=?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data
+            ]);
+            return $this->sendPayload(null, "success", "File backed up successfully.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
+    
+    public function  recoverBackup($data){
+        $sql = "INSERT INTO files SELECT * FROM backup WHERE FileID=?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data
+            ]);
+            return $this->sendPayload(null, "success", "File recovered successfully.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
+
+    public function createFolder($data){
+         $currentTime = date('Y-m-d');
+         $sql = "INSERT INTO folders (
+             UserID, FolderName, LastModified)          
+             VALUES (?,?,?)";
+               try{
+                      $statement = $this->pdo->prepare($sql);
+                      $statement->execute(
+                          [
+                       $data->UserID,
+                       $data->FolderName,
+                     $currentTime
+                       ]
+                );
+                return $this->sendPayload(null, "success", "Successfully created a new record.", 200);
+            }
+            catch(\PDOException $e){
+                $errmsg = $e->getMessage();
+                $code = 400;
+            }
+           
+            return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
+
+    public function deleteRecoveryFile($data){
+        $sql = "DELETE FROM backup WHERE FileID=?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data
+            ]);
+            return $this->sendPayload(null, "success", "File deleted from recovery.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
     
 
     public function edit_files($data){
@@ -252,6 +321,189 @@ class Post extends GlobalMethods{
 
     }
 
+    public function updateFolderName($data){
+        $currentTime = date('Y-m-d');
+        $sql = "UPDATE folders SET FolderName=?, LastModified=? WHERE FolderID = ?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data->FolderName, 
+                $currentTime,
+                $data->FolderID
+            ]);
+            return $this->sendPayload(null, "success", "Successfully updated record.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+            return $this->sendPayload(null, "failed", $errmsg, $code);
+        }
+    }
+
+    public function restoreFolder($data) {
+        $currentTime = date('Y-m-d');
+        try {
+    
+            // Begin transaction
+            $this->pdo->beginTransaction();
+    
+            $sql = "UPDATE files SET isArchived=0, LastModified=? WHERE FolderID=?";
+            $filesStatement = $this->pdo->prepare($sql);
+            $filesStatement->execute([
+                $currentTime, 
+                $data
+            ]);
+
+            $sql = "UPDATE folders SET isArchived=0, LastModified=? WHERE FolderID=?";
+            $foldersStatement = $this->pdo->prepare($sql);
+            $foldersStatement->execute([
+                $currentTime, 
+                $data
+            ]);
+
+            $this->pdo->commit();
+    
+            return $this->sendPayload(null, "success", "Successfully updated records.", 200);
+        } catch(\PDOException $e) {
+            // Rollback transaction on error
+            $this->pdo->rollBack();
+            $errmsg = $e->getMessage();
+            $code = 400;
+    
+            // Log error message for debugging
+            error_log("Error: " . $errmsg);
+    
+            return $this->sendPayload(null, "failed", $errmsg, $code);
+        }
+    }
+
+    public function selfRemoveAccess($data){
+        $sql = "DELETE FROM collaborations WHERE CollabID=?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data
+            ]);
+            return $this->sendPayload(null, "success", "Access removed successfully.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
+
+    public function addCollaborator($data) {
+        if (!isset($data->Email) || !isset($data->FileID)) {
+            return $this->sendPayload(null, "failed", "Email and FileID are required fields.", 400);
+        }
+    
+        $email = $data->Email;
+        $userData = $this->get_records("users", "Email='$email'");
+        if (empty($userData['payload'])) {
+            return $this->sendPayload(null, "failed", "User not found.", 404);
+        }
+    
+        $userID = $userData['payload'][0]['UserID'];
+        
+        // Check if the user is already a collaborator for this file
+        $existingCollaboration = $this->get_records("collaborations", "UserID=$userID AND FileID=$data->FileID");
+        if (!empty($existingCollaboration['payload'])) {
+            return $this->sendPayload(null, "failed", "User is already a collaborator for this file.", 400);
+        }
+    
+        $sql = "INSERT INTO collaborations (UserID, FileID, CollabType) VALUES (?,?,?)";
+        
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $userID,
+                $data->FileID,
+                $data->CollabType
+            ]);
+    
+            return $this->sendPayload(null, "success", "Collaborator added successfully.", 200);
+        } catch(\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+    
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
+    
+
+    public function deleteFolderandFiles($data){
+        try {
+    
+            // Begin transaction
+            $this->pdo->beginTransaction();
+    
+            $sql = "DELETE FROM files WHERE FolderID=?";
+            $filesStatement = $this->pdo->prepare($sql);
+            $filesStatement->execute([
+                $data
+            ]);
+
+            $sql = "DELETE FROM folders WHERE FolderID=?";
+            $foldersStatement = $this->pdo->prepare($sql);
+            $foldersStatement->execute([
+                $data
+            ]);
+
+            $this->pdo->commit();
+    
+            return $this->sendPayload(null, "success", "Successfully updated records.", 200);
+        } catch(\PDOException $e) {
+            // Rollback transaction on error
+            $this->pdo->rollBack();
+            $errmsg = $e->getMessage();
+            $code = 400;
+    
+            // Log error message for debugging
+            error_log("Error: " . $errmsg);
+    
+            return $this->sendPayload(null, "failed", $errmsg, $code);
+        }
+    }
+
+    //Archiving a folder
+    public function archiveFolderAndFiles($data) {
+        $currentTime = date('Y-m-d');
+        try {
+    
+            // Begin transaction
+            $this->pdo->beginTransaction();
+    
+            $sql = "UPDATE files SET isArchived=1, LastModified=? WHERE FolderID=?";
+            $filesStatement = $this->pdo->prepare($sql);
+            $filesStatement->execute([
+                $currentTime, 
+                $data
+            ]);
+
+            $sql = "UPDATE folders SET isArchived=1, LastModified=? WHERE FolderID=?";
+            $foldersStatement = $this->pdo->prepare($sql);
+            $foldersStatement->execute([
+                $currentTime, 
+                $data
+            ]);
+
+            $this->pdo->commit();
+    
+            return $this->sendPayload(null, "success", "Successfully updated records.", 200);
+        } catch(\PDOException $e) {
+            // Rollback transaction on error
+            $this->pdo->rollBack();
+            $errmsg = $e->getMessage();
+            $code = 400;
+    
+            // Log error message for debugging
+            error_log("Error: " . $errmsg);
+    
+            return $this->sendPayload(null, "failed", $errmsg, $code);
+        }
+    }
+    
+    
+
     //Restore file
     public function restoreFile($data) {
         $currentTime = date('Y-m-d');
@@ -272,6 +524,7 @@ class Post extends GlobalMethods{
    
     public function uploadFile($data) {
         $UserID = $_POST['userId'];
+        $FolderID = isset($_POST['folderID']) ? $_POST['folderID'] : null;
 
         if (isset($_FILES["file"]) && $_FILES["file"]["error"] == 0) {
             $filename = $_FILES["file"]["name"];
@@ -298,7 +551,7 @@ class Post extends GlobalMethods{
             try {
                 $statement = $this->pdo->prepare($sql);
                 $statement->execute([
-                    null,
+                    $FolderID,
                     $UserID,
                     $extension,
                     $filename,
@@ -311,8 +564,6 @@ class Post extends GlobalMethods{
                 $errmsg = $e->getMessage();
                 $code = 400;
             }
-
-    
             return $this->sendPayload(null, "failed", $errmsg, $code);
         } else {
             return $this->sendPayload(null, "failed", "File upload error.", 400);

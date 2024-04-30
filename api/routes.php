@@ -83,11 +83,37 @@
                     // Return JSON-encoded data for getting files
                         echo json_encode($get->get_file($request[1]));
                     break;
-                
-                
+                case 'getfilesbyfolder':
+                    // Return JSON-encoded data for getting files
+                        echo json_encode($get->get_files_by_folder($request[1]));
+                    break;
+
                 case 'getarchive':
                     // Return JSON-encoded data for getting jobs
-                    echo json_encode($get->get_archive());
+                    echo json_encode($get->get_archive($request[1]));
+                    break;
+                case 'getbackup':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->get_user_backup($request[1]));
+                    break;
+                
+                case 'getfolders':
+                    // Return JSON-encoded data for getting jobs
+                        echo json_encode($get->get_folders($request[1]));
+                    break;
+                case 'getfolderbyid':
+                    // Return JSON-encoded data for getting jobs
+                        echo json_encode($get->get_folder($request[1]));
+                    break;
+
+                case 'getarchivedfolders':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->get_archived_folders($request[1]));
+                    break;
+                
+                case 'getCollaborationFile':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->getCollaborationFile($request[1]));
                     break;
                 
                 default:
@@ -140,6 +166,49 @@
                     echo json_encode($post->uploadProfile($data));
                     break;
                 
+                case 'backupfile':
+                    // 
+                    echo json_encode($post->backupFile($data));
+                    break;
+                case 'recoverfile':
+                    // 
+                    echo json_encode($post->recoverBackup($data));
+                    break;
+                case 'deleterecovery':
+                    // 
+                    echo json_encode($post->deleteRecoveryFile($data));
+                    break;
+                case 'createfolder':
+                    // 
+                    echo json_encode($post->createFolder($data));
+                    break;
+                
+                case 'updateFolderName':
+                    // 
+                    echo json_encode($post->updateFolderName($data));
+                    break;
+                case 'archivefolder':
+                    // 
+                    echo json_encode($post->archiveFolderAndFiles($data));
+                    break;
+                case 'restorefolder':
+                    // 
+                    echo json_encode($post->restoreFolder($data));
+                    break;
+                case 'deletefolder':
+                    // 
+                    echo json_encode($post->deleteFolderandFiles($data));
+                    break;
+                case 'addcollaborator':
+                    // 
+                    echo json_encode($post->addCollaborator($data));
+                    break;
+                
+                case 'selfremoveaccess':
+                    // 
+                    echo json_encode($post->selfRemoveAccess($data));
+                    break;
+
                 default:
                     // Return a 403 response for unsupported requests
                     echo "This is forbidden";

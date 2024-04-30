@@ -98,12 +98,33 @@ class Get extends GlobalMethods{
         $condition = "isArchived=0 AND FileID=$id";                 
         return $this->get_records("files", $condition);
     }
+    public function get_files_by_folder($id){
+        $condition = "isArchived=0 AND FolderID=$id";                
+        return $this->get_records("files", $condition);
+    }
 
     public function get_folders($id=null){
-        $condition = null;
-        if($id != null){
-            $condition = "FolderID=$id";
-        }
+        // Condition to retrieve non-archived folders for the specified user
+        $condition = "isArchived=0 AND UserID=$id";
+    
+        // SQL query to retrieve folders along with the count of files for each folder
+        $sql = "SELECT f.*, 
+                   (SELECT COUNT(*) FROM files WHERE files.FolderID = f.FolderID) AS FileCount
+                FROM folders f
+                WHERE $condition";
+    
+        // Execute the SQL query and return the result
+        return $this->executeQuery($sql);
+    }
+    
+
+    public function get_folder($id){
+        $condition = "isArchived=0 AND FolderID=$id";
+        return $this->get_records("folders", $condition);
+    }
+
+    public function get_archived_folders($id){
+        $condition = "isArchived=1 AND UserID=$id";
         return $this->get_records("folders", $condition);
     }
 
@@ -112,6 +133,29 @@ class Get extends GlobalMethods{
         return $this->get_records("files", $condition);
     }
 
+    public function getCollaborationFile($data) {
+        $subQuery = "(SELECT FileID, COUNT(DISTINCT UserID) AS TotalSharedUsersCount FROM collaborations GROUP BY FileID)";
+        
+        $condition = "files.isArchived = 0 AND collaborations.UserID = $data";
+        $joinCondition = "files.FileID = collaborations.FileID";
+        
+        $sql = "SELECT files.FileID, files.FileNames, files.FileSize, files.LastModified, files.FileTypeIdentifier, 
+                collaborations.CollabType, subquery.TotalSharedUsersCount
+                FROM files
+                INNER JOIN collaborations ON $joinCondition
+                INNER JOIN $subQuery AS subquery ON files.FileID = subquery.FileID
+                WHERE $condition
+                GROUP BY files.FileID, files.FileNames, files.FileSize, files.LastModified, files.FileTypeIdentifier, collaborations.CollabType";
+    
+        return $this->executeQuery($sql);
+    }
+    
+    
+    public function get_user_backup($id){
+        $condition = "UserID=$id";
+        return $this->get_records("backup", $condition);
+    }
+    
 
     public function get_backup($id=null){
         $condition = null;
@@ -121,10 +165,11 @@ class Get extends GlobalMethods{
         return $this->get_records("backup", $condition);
     }
 
-    public function get_archive(){
-        $condition = "isArchived=1";
+    public function get_archive($id){
+        $condition = "isArchived = 1 AND UserID=$id";
         return $this->get_records("files", $condition);
     }
+ 
     
     public function get_filetypeimage($fileTypeIdentifier) {
         // Define an array mapping file extensions to corresponding image URLs
