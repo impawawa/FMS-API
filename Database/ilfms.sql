@@ -20,7 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `ilfms`
 --
-CREATE DATABASE IF NOT EXISTS `ilfms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE DATABASE IF NOT EXISTS `ilfms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `ilfms`;
 
 -- --------------------------------------------------------
@@ -38,7 +38,7 @@ CREATE TABLE `backup` (
   `FileSize` int NOT NULL,
   `LastModified` timestamp NOT NULL,
   `isArchived` tinyint NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -51,7 +51,7 @@ CREATE TABLE `collaborations` (
   `UserID` int NOT NULL,
   `FileID` int NOT NULL,
   `CollabType` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -68,7 +68,7 @@ CREATE TABLE `files` (
   `FileSize` int DEFAULT NULL,
   `LastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `isArchived` tinyint NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -82,7 +82,7 @@ CREATE TABLE `folders` (
   `FolderName` varchar(255) NOT NULL,
   `LastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `isArchived` tinyint DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -98,7 +98,7 @@ CREATE TABLE `users` (
   `PasswordHash` varchar(255) NOT NULL,
   `UsersImage` varchar(255) NOT NULL DEFAULT 'default_profile.png',
   `usertype` varchar(50) NOT NULL DEFAULT 'user'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
