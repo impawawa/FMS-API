@@ -375,6 +375,21 @@ class Post extends GlobalMethods{
             return $this->sendPayload(null, "failed", $errmsg, $code);
         }
     }
+    
+    public function removeCollaborator($data){
+        $sql = "DELETE FROM collaborations WHERE CollabID=?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data
+            ]);
+            return $this->sendPayload(null, "success", "Collaborator removed successfully.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
 
     public function selfRemoveAccess($data){
         $sql = "DELETE FROM collaborations WHERE CollabID=?";
@@ -384,6 +399,22 @@ class Post extends GlobalMethods{
                 $data
             ]);
             return $this->sendPayload(null, "success", "Access removed successfully.", 200);
+        } catch (\PDOException $e) {
+            $errmsg = $e->getMessage();
+            $code = 400;
+        }
+        return $this->sendPayload(null, "failed", $errmsg, $code);
+    }
+
+    public function moveFile($data){
+        $sql = "UPDATE files SET FolderID=? WHERE FileID=?";
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute([
+                $data->FolderID,
+                $data->FileID
+            ]);
+            return $this->sendPayload(null, "success", "File moved successfully.", 200);
         } catch (\PDOException $e) {
             $errmsg = $e->getMessage();
             $code = 400;

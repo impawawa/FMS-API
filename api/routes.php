@@ -75,6 +75,24 @@
                         echo json_encode($get->get_users());
                     }
                     break;
+                case 'getFiles':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->getFiles());
+                    break;
+                case 'getFolders':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->getFolders());
+                    break;
+                case 'getcollaborations':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->get_collaborations());
+                    break;
+
+                case 'getbackups':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->getBackUp());
+                    break;
+                
                 case 'getfiles':
                     // Return JSON-encoded data for getting files
                         echo json_encode($get->get_files($request[1]));
@@ -115,7 +133,15 @@
                     // Return JSON-encoded data for getting jobs
                     echo json_encode($get->getCollaborationFile($request[1]));
                     break;
+                case 'getCollaboratorByFile':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->getCollaboratorByFile($request[1]));
+                    break;
                 
+                case 'getCollaborations':
+                    // Return JSON-encoded data for getting jobs
+                    echo json_encode($get->getCollaborations());
+                    break;
                 default:
                     // Return a 403 response for unsupported requests
                     echo "This is forbidden";
@@ -207,6 +233,10 @@
                 case 'selfremoveaccess':
                     // 
                     echo json_encode($post->selfRemoveAccess($data));
+                    break;
+                case 'movefile':
+                    // 
+                    echo json_encode($post->moveFile($data));
                     break;
 
                 default:

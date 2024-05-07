@@ -88,6 +88,24 @@ class Get extends GlobalMethods{
                                     //Laging Table Name
         return $this->get_records("users", $condition);
     }
+    public function getFiles(){
+        $condition = null;
+        return $this->get_records("files", $condition);
+    }
+    
+    public function getFolders(){
+        $condition = null;
+        return $this->get_records("folders", $condition);
+    }
+
+    public function getBackUp(){
+        $condition = null;
+        return $this->get_records("backup", $condition);
+    }
+    public function get_collaborations(){
+        $condition = null;
+        return $this->get_records("collaborations", $condition);
+    }
 
     public function get_files($id){
         $condition = "isArchived=0 AND UserID=$id";                
@@ -149,7 +167,22 @@ class Get extends GlobalMethods{
     
         return $this->executeQuery($sql);
     }
+
+    public function getCollaborations(){
+        $sql = "SELECT * FROM collaborations";
+        return $this->executeQuery($sql);
+    }
+
+    public function getCollaboratorByFile($data){
+       
+        // Inner join the users and collaborations tables to get the collaborator details
+        $sql = "SELECT users.UserID, users.FirstName, users.LastName, users.Email, collaborations.FileID, collaborations.CollabID
+                FROM users
+                INNER JOIN collaborations ON users.UserID = collaborations.UserID
+                WHERE collaborations.FileID = $data";
     
+        return $this->executeQuery($sql);
+    }
     
     public function get_user_backup($id){
         $condition = "UserID=$id";
